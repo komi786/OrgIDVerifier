@@ -1,0 +1,80 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 pragma solidity >=0.4.0 <0.7.0;\
+import './OrgIDVC.sol';\
+\
+contract Utility\{\
+\
+address private userAddress;\
+mapping(address => string) public attrlog;\
+\
+  constructor() public \{\
+    userAddress = msg.sender;\
+ \}\
+ uint256 public count = 1; \
+modifier onlyuser() \{\
+     require(msg.sender==userAddress);\
+     _;\
+\}\
+bytes public AES;\
+\
+function storeAttr(string memory attrLink) public onlyuser \{\
+    attrlog[userAddress]=attrLink;\
+    \
+\}\
+function stringToBytes32(string memory source) public pure returns (bytes32 result) \{\
+    // bytes memory tempEmptyStringTest = bytes(source);\
+    // if (tempEmptyStringTest.length == 0) \{\
+    //     return 0x0;\
+    // \}\
+    // assembly \{\
+    //     result := mload(add(source, 32))\
+    // \}\
+      bytes32 hash= keccak256(abi.encodePacked(source));\
+      return hash;\
+\}\
+ function addrToString(address _addr) internal pure returns(string memory) \{\
+        bytes32 value = bytes32(uint256(_addr));\
+        bytes memory alphabet = "012zo3kg45zi6789";\
+\
+        bytes memory str = new bytes(42);\
+        str[0] = '0';\
+        str[1] = 'x';\
+        for (uint i = 0; i < 20; i++) \{\
+            str[2+i*2] = alphabet[uint8(value[i + 12] >> 4)];\
+            str[3+i*2] = alphabet[uint8(value[i + 12] & 0x0f)];\
+        \}\
+        return string(str);\
+    \}\
+function addresstobyte20() public view returns(bytes20)\
+\{\
+    return bytes20(msg.sender);\
+\}\
+ function sumcount() public  returns(uint256) \{\
+       uint256 r = count++;\
+       return r;\
+   \}\
+function setAES(bytes memory hash) public \{\
+    AES= hash;\
+\}\
+ //  function getOrgID(address addr,string memory prefix) public view returns (bytes memory) \{\
+// 		bytes memory bStr = abi.encodePacked(stringToBytes32(prefix), addrToString(addr)); \
+// 		//abi.encodePacked only converts the concatenated  prefix and string converted address to bytes memory\
+	\
+// 		bytes memory bLower = new bytes(bStr.length);\
+// 		for (uint i = 0; i < bStr.length; i++) \{\
+// 			if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) \{\
+// 				bLower[i] = bytes1(int8(bStr[i]) + 32);\
+// 			\} else \{\
+// 				bLower[i] = bStr[i];\
+// 			\}\
+// 		\}\
+// 		return bLower;\
+// 	\}\
+\
+\}}

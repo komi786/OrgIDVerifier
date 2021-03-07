@@ -1,0 +1,102 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 pragma solidity >=0.4.22 <0.7.0;\
+//pragma experimental ABIEncoderV2;\
+\
+import './OnlyOwner.sol';\
+import './OrgIDStorage.sol';\
+\
+\
+\
+//import './OrgIDBase.sol';\
+\
+\
+contract OrgIDVC is OnlyOwner \{\
+\
+    struct Claim \{\
+        \
+        \
+        bool exist;\
+        address subject;\
+        address issuer;\
+       // address owner;\
+      //  bytes20 vcId;   //unique key of credential\
+       // bytes OrgID;\
+        bytes metahash;\
+        bytes32 uri;\
+        \
+\
+    \}\
+    bytes32 constant VERIFIED_CREDENTIAL_TYPEHASH = keccak256("VerifiedCredential(address issuer, address subject, bool exist, bytes OgrID, bytes metahash, bytes uri)");\
+    //uint256 counter=0;\
+    mapping(bytes20 => mapping(bytes32 => Claim)) OrgIDVCs; //could use uint instead of bytes20\
+    constructor() public \{\
+    \}\
+    \
+    function upsert(bytes20 internalkey, bytes memory  prefix, bool isExist, address subject, address issuer, bytes memory hash, bytes32 uri) public returns(bytes32) \{\
+         \
+        //require(db.exist(internalkey), "OrgID does not exist");\
+        //  Claim memory vc = Claim(\{exist:isExist,subject:subject,issuer:issuer,metahash:hash, uri:uri\});\
+        \
+         bytes32  verifiablehash =  keccak256(abi.encode(\
+             VERIFIED_CREDENTIAL_TYPEHASH,\
+             issuer,\
+             subject,\
+             hash,   //bool cannot be encoded in this function, throws error\
+             uri\
+         ));  \
+         \
+         bytes32 digest = keccak256(\
+         abi.encodePacked(\
+             prefix,\
+             VERIFIED_CREDENTIAL_TYPEHASH, \
+             verifiablehash\
+             ));\
+        require(!exist(internalkey,digest), "Credential already exist");\
+        OrgIDVCs[internalkey][digest] = Claim(isExist,subject,issuer,hash, uri);\
+        \
+        \
+        return digest;\
+    \}\
+\
+    function exist(bytes20 internalVC, bytes32 digest) public view returns (bool) \{  \
+        \
+        return OrgIDVCs[internalVC][digest].exist;\
+    \}\
+    \
+    \
+    function get( bytes20 internalkey,bytes32 digest) public view returns (address,address,bytes memory, bytes32) \
+    \{\
+        require(exist(internalkey,digest), "Credential does not exist");\
+        return (OrgIDVCs[internalkey][digest].subject, OrgIDVCs[internalkey][digest].issuer, OrgIDVCs[internalkey][digest].metahash, OrgIDVCs[internalkey][digest].uri);\
+    \}\
+    \
+    //  function hash(Claim storage claim) internal pure returns (bytes32) \{\
+    //       return keccak256(abi.encode(\
+    //          VERIFIED_CREDENTIAL_TYPEHASH,\
+    //          claim.issuer,\
+    //          claim.subject,\
+    //          claim.exist,\
+    //          claim.metahash,\
+    //          claim.uri\
+    //      ));\
+         \
+    //  \}\
+\}\
+\
+\
+// function setPrefix(bytes memory _prefix) public onlyOwner \{\
+    //     prefix = _prefix;\
+    // \}\
+    // function compareId(bytes memory b1, bytes  memory b2) public pure returns(bool)\{\
+    //   return (keccak256(abi.encodePacked(b1, b1)) ==  keccak256(abi.encodePacked(b2, b2)));\
+    // \}\
+\
+    // function getPrefix() public view returns (bytes memory) \{\
+    //     return prefix;\
+    // }

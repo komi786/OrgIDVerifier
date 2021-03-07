@@ -1,0 +1,84 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 pragma solidity >=0.4.22 <0.6.0;\
+\
+import './OnlyOwner.sol';\
+\
+contract OrgIDStorage is OnlyOwner \{\
+    bytes  prefix;\
+\
+    struct OrgID \{\
+        bool exist;\
+        address owner;\
+        bytes32 hash;\
+        bytes32 uri;\
+    \}\
+    \
+    \
+    // struct ARLog \{\
+    //  uint256 reqID;\
+    //  bytes32 proof;\
+    //  bool exist;\
+    // \}\
+  //  uint256 logidcount=0;\
+    // mapping(uint256 =>ARLog) ARLogs;  //Access Request logs \
+\
+    //event userproofadded(uint256 rqId,uint256 UserlogId);\
+    \
+    mapping(bytes20 => OrgID) OrgIDs;\
+ \
+    constructor(bytes memory _prefix) public \{\
+        setPrefix(_prefix);\
+    \}\
+\
+    function exist(bytes20 internalDID) public view returns (bool) \{\
+        return OrgIDs[internalDID].exist;\
+    \}\
+\
+    function setPrefix(bytes memory _prefix) public onlyOwner \{\
+        prefix = _prefix;\
+    \}\
+\
+    function getPrefix() public view returns (bytes memory) \{\
+        return prefix;\
+    \}\
+\
+    function upsert(bytes20 internalIDs, bool isExist, address owner, bytes32 hash, bytes32 uri) public onlyOwner \{\
+        OrgIDs[internalIDs] = OrgID(isExist, owner, hash, uri);\
+    \}\
+    \
+    function get(bytes20 internalIDs) public view returns (address, bytes32, bytes32) \{\
+        require(exist(internalIDs), "DID does not exist");\
+        return (OrgIDs[internalIDs].owner, OrgIDs[internalIDs].hash, OrgIDs[internalIDs].uri);\
+    \}\
+    \
+    \
+    //encode  proof_claim in JWT (set by user, random secret) and decrypted JWT in response and sent\
+    //to SPBASE //it is done offline in Org Interface  off of blockchain contracts\
+    \
+    // function addReqLog(uint256  ReqID, bytes memory _userproof) public onlyOwner returns(uint256)\
+    // \{  //step 5 in scheme (following step 6 notifies the system that user proof is added which is handled offline)\
+    //     uint256 logid=logidcount++;\
+    //     bytes32 hash= keccak256(abi.encodePacked(_userproof));\
+    //     ARLogs[logid] = ARLog(ReqID,hash, true);     //request Id sent by service provider and computed proof\
+    //     emit userproofadded(ReqID,logid);  //   \
+        \
+    // \}\
+    // function ASQchallange(bytes memory _enUproof) public onlyOwner \{\
+     \
+         \
+    // \}  \
+    // function userProofexist(uint256 userlogID) public view returns(bool) \{\
+    //     return ARLogs[userlogID].exist;\
+    // \}\
+    // // function verify(bytes up, bytes memory op) public onlyOwner  returns (bool)  \{\
+    // //     return true;\
+    // // \}\
+    \
+    \
+\}}

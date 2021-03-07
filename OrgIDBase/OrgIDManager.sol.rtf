@@ -1,0 +1,92 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 pragma solidity >=0.4.22 <0.6.0;\
+\
+import './OrgIDBase.sol';\
+\
+//import './OrgIDVCBase.sol';\
+\
+// DIDManagerBase is an implementation of OrgID which is only updatable by owner\
+contract OrgIDManager is OrgIDBase \{\
+\
+    function internalCreateOrgID(bytes memory OrgID, bytes20 internalKey, address OrgidOwner, bytes32 h, bytes32 uri) internal \{\
+        require(!db.exist(internalKey), "duplicate OrgID");\
+        db.upsert(internalKey, true, OrgidOwner, h, uri);\
+        emit IDCreated(OrgidOwner, OrgID, h, uri, internalKey);\
+    \
+    \}\
+\
+    function internalUpdateOrgID(bytes memory OrgID, bytes20 internalKey, address didOwner, bytes32 h, bytes32 uri) internal \{\
+        require(db.exist(internalKey), "OrgID does not exist");\
+        (address ownerAddr,,) = db.get(internalKey) ; // why mention the function at the end internalUpdateOrgID... check original code\
+        require(ownerAddr == didOwner, "no permission");\
+        db.upsert(internalKey, db.exist(internalKey), didOwner, h, uri);\
+        emit IDUpdated(didOwner, OrgID, h, uri);\
+    \}\
+    \
+    // function GeneratorOrgID(bytes memory OrgID,  bytes20 internalKey,address didOwner,bool status) internal\{\
+    //      require(db.exist(internalKey), "OrgID does not exist");\
+        \
+    //      (address ownerAddr,bytes32 hash,bytes memory uri) = db.get(internalKey);\
+    //       require(ownerAddr == didOwner, "no permission");\
+    //     // bool status = db.exist(internalKey);\
+    //      db.upsert(internalKey, status, ownerAddr, hash, uri);\
+    //      emit IDUpdated(didOwner, OrgID, hash, string(uri));\
+    // \}\
+    \
+    function internalDeleteOrgID(bytes memory OrgID, bytes20 internalKey,address didOwner) internal \{\
+        require(db.exist(internalKey), "OrgID does not exist");\
+        (address ownerAddr, bytes32 h, bytes32 uri) = db.get(internalKey);\
+        require(ownerAddr == didOwner, "no permission");\
+        db.upsert(internalKey, false, ownerAddr, h, uri);\
+        emit IDDeleted(msg.sender, OrgID);\
+    \}\
+    \
+    \
+    //for Credential Management\
+    function internalInsertVC(bytes20 internalKey, address OrgidOwner, address issuer, bytes memory metahash, bytes32 uri) internal \{\
+        \
+        require(db.exist(internalKey), "OrgID does not exist");\
+        (address ownerAddr,,) = db.get(internalKey);\
+        require(ownerAddr == OrgidOwner, "no permission");\
+        bytes32 digest=vCdb.upsert(internalKey,db.getPrefix(),true, ownerAddr,issuer,metahash,uri);\
+        emit VCCreated(issuer,ownerAddr, digest);\
+        \
+    \}\
+    \
+    \
+\
+    // function internalUpdateVC( bytes20 internalKey, bytes32 digest, address OrgidOwner, address issuer, bytes memory metahash, bytes32 uri, bool status) internal \{\
+    //     require(vCdb.exist(internalKey,digest), "OrgID does not exist");\
+    //     (address ownerAddr ,,) = db.get(internalKey); //check if the OrgidOwner have OrgID to allow OrgID VC creation\
+    //     require(ownerAddr == OrgidOwner, "no permission");\
+    //     vCdb.upsert(internalKey,db.getPrefix(),status, ownerAddr,issuer,metahash,uri);\
+    //     emit VCUpdated(issuer,ownerAddr, uri);\
+       \
+    // \}\
+    \
+    \
+    function internalRevokeVC(bytes20 internalKey, bytes32 digest) internal \{ //address subject\
+         require(vCdb.exist(internalKey,digest), "Claim does not exist");\
+         revokeregistry.revoke(digest);\
+        // (address ownerAddr ,address issuer,,) = vCdb.get(internalKey,digest); //only OrgidOwner or issuer is allowed to revoke OrgID VC \
+         // if(ownerAddr == subject || ownerAddr == issuer) \
+         //\{\
+              \
+         // \}\
+        //   revocations.revoke(digest);\
+          \
+    \}\
+    \
+\
+    function checkprefix(bytes memory Orgid) internal \{\
+        \
+        emit prefixlength(Orgid,db.getPrefix());\
+    \}\
+    \
+\}}
